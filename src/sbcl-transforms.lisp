@@ -41,24 +41,28 @@
   (def-alien "tan")
   (def-alien "sinh")
   (def-alien "cosh")
+  (def-alien "sqrt")
   (def-alien "tanh"))
-
-(defun print-condition-and-continue (c)
-  (princ c)
-  (terpri)
-  (continue))
 
 ;; Tell the compiler these functions are pure
 ;; (look at src/compiler/generic/vm-fndb.lisp in SBCL source code).
 
 ;; Additional hack is needed for these functions to be really flushable:
 ;; https://sourceforge.net/p/sbcl/mailman/message/37134684/
-(handler-bind
-    ;; KLUDGE: Provide clean forced recompilation
-    ((simple-error #'print-condition-and-continue))
-  (sb-c:defknown (%exp %log %sin %cos %tan %sinh %cosh %tanh)
-      (single-float) single-float
-      (sb-c:movable sb-c:flushable sb-c:foldable)))
+(sb-c:defknown (%exp %sqrt %cosh)
+    (single-float) (single-float 0f0)
+    (sb-c:movable sb-c:flushable sb-c:foldable)
+  :overwrite-fndb-silently t)
+
+(sb-c:defknown (%sin %cos %tanh)
+    (single-float) (single-float -1f0 1f0)
+    (sb-c:movable sb-c:flushable sb-c:foldable)
+  :overwrite-fndb-silently t)
+
+(sb-c:defknown (%log %tan %sinh)
+    (single-float) single-float
+    (sb-c:movable sb-c:flushable sb-c:foldable)
+  :overwrite-fndb-silently t)
 
 ;; Define IR1 transformations from EXP to %EXP and so on.
 ;; (look at src/compiler/float-tran.lisp in SBCL source code).
@@ -70,6 +74,7 @@
             '(,trans-name ,arg)))))
   (def-trans exp  *)
   (def-trans log  float)
+  (def-trans sqrt float)
   (def-trans sin  *)
   (def-trans cos  *)
   (def-trans tan  *)

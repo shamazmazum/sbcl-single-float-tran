@@ -6,7 +6,5 @@
   :licence "2-clause BSD"
   :serial t
   :pathname "src/"
-  :components (#+sbcl
-               (:file "sbcl-transforms")
-               #-sbcl
-               (:file "no-sbcl")))
+  :components ((:file "sbcl-transforms" :if-feature :sbcl)
+               (:file "no-sbcl" :if-feature (:not :sbcl))))

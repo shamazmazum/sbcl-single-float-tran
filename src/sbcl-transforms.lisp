@@ -20,29 +20,30 @@
 
 ;; Alien mathematical functions (look at src/code/irrat.lisp in SBCL sources)
 (macrolet
-    ((def-alien (name)
+    ((def-alien (name nargs)
        (let ((func-name (symbolicate "%" name "f"))
              (alien-name (format nil "~af" name))
-             (arg (gensym)))
+             (args (loop repeat nargs collect (gensym "ARG-"))))
          `(progn
             (declaim (inline ,func-name))
-            (defun ,func-name (,arg)
+            (defun ,func-name ,args
               (sb-ext:truly-the
                single-float
                (sb-alien:alien-funcall
                 (sb-alien:extern-alien
                  ,alien-name
-                 (function single-float (single-float)))
-                ,arg)))))))
-  (def-alien "exp")
-  (def-alien "log")
-  (def-alien "sin")
-  (def-alien "cos")
-  (def-alien "tan")
-  (def-alien "sinh")
-  (def-alien "cosh")
-  (def-alien "sqrt")
-  (def-alien "tanh"))
+                 (function single-float ,@(loop repeat nargs collect 'single-float)))
+                ,@args)))))))
+  (def-alien "exp"  1)
+  (def-alien "log"  1)
+  (def-alien "sin"  1)
+  (def-alien "cos"  1)
+  (def-alien "tan"  1)
+  (def-alien "sinh" 1)
+  (def-alien "cosh" 1)
+  (def-alien "sqrt" 1)
+  (def-alien "tanh" 1)
+  (def-alien "pow"  2))
 
 ;; Tell the compiler these functions are pure
 ;; (look at src/compiler/generic/vm-fndb.lisp in SBCL source code).
@@ -64,6 +65,11 @@
     (sb-c:movable sb-c:flushable sb-c:foldable)
   :overwrite-fndb-silently t)
 
+(sb-c:defknown (%powf)
+  (single-float single-float) single-float
+    (sb-c:movable sb-c:foldable sb-c:flushable)
+  :overwrite-fndb-silently t)
+
 ;; Define IR1 transformations from EXP to %EXP and so on.
 ;; (look at src/compiler/float-tran.lisp in SBCL source code).
 (macrolet
@@ -81,3 +87,9 @@
   (def-trans sinh *)
   (def-trans cosh *)
   (def-trans tanh *))
+
+(sb-c:deftransform expt ((x y) (single-float single-float) single-float)
+  `(%powf x y))
+
+(sb-c:deftransform expt ((x y) (single-float integer) single-float)
+  `(%powf x (coerce y 'single-float)))

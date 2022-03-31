@@ -16,6 +16,9 @@
 ;; optimizations I change the type to the correct one and later
 ;; overwrite this transform in sbcl-transforms.lisp
 
+;; Fixed in SBCL 2.2.1
+;; The following lines do nothing on newer versions.
+
 (flet ((patch-transform-type (function old-type new-type)
          (let ((info (fun-info-or-lose function)))
            (with-accessors ((transforms fun-info-transforms))

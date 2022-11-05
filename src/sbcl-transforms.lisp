@@ -18,7 +18,33 @@
            (t (error "Not a symbol or string"))))
        args)))))
 
-;; Alien mathematical functions (look at src/code/irrat.lisp in SBCL sources)
+;; Tell the compiler math functions are pure
+;; (look at src/compiler/generic/vm-fndb.lisp in SBCL source code).
+
+;; Additional hack is needed for these functions to be really flushable:
+;; https://sourceforge.net/p/sbcl/mailman/message/37134684/
+(sb-c:defknown (%expf %sqrtf %coshf)
+    (single-float) (single-float 0f0)
+    (sb-c:movable sb-c:flushable sb-c:foldable)
+  :overwrite-fndb-silently t)
+
+(sb-c:defknown (%sinf %cosf %tanhf)
+    (single-float) (single-float -1f0 1f0)
+    (sb-c:movable sb-c:flushable sb-c:foldable)
+  :overwrite-fndb-silently t)
+
+(sb-c:defknown (%logf %tanf %sinhf)
+    (single-float) single-float
+    (sb-c:movable sb-c:flushable sb-c:foldable)
+  :overwrite-fndb-silently t)
+
+(sb-c:defknown (%powf)
+  (single-float single-float) single-float
+    (sb-c:movable sb-c:foldable sb-c:flushable)
+  :overwrite-fndb-silently t)
+
+;; Mathematical functions which call C library counterparts
+;; (look at src/code/irrat.lisp in SBCL sources).
 (macrolet
     ((def-alien (name nargs)
        (let ((func-name (symbolicate "%" name "f"))
@@ -28,7 +54,8 @@
             (declaim (inline ,func-name))
             (defun ,func-name ,args
               (sb-ext:truly-the
-               single-float
+               ,(sb-kernel:type-specifier
+                 (sb-kernel:fun-type-returns (sb-impl::info :function :type func-name)))
                (sb-alien:alien-funcall
                 (sb-alien:extern-alien
                  ,alien-name
@@ -41,34 +68,15 @@
   (def-alien "tan"  1)
   (def-alien "sinh" 1)
   (def-alien "cosh" 1)
+  #-x86-64
   (def-alien "sqrt" 1)
   (def-alien "tanh" 1)
   (def-alien "pow"  2))
 
-;; Tell the compiler these functions are pure
-;; (look at src/compiler/generic/vm-fndb.lisp in SBCL source code).
-
-;; Additional hack is needed for these functions to be really flushable:
-;; https://sourceforge.net/p/sbcl/mailman/message/37134684/
-(sb-c:defknown (%exp %sqrt %cosh)
-    (single-float) (single-float 0f0)
-    (sb-c:movable sb-c:flushable sb-c:foldable)
-  :overwrite-fndb-silently t)
-
-(sb-c:defknown (%sin %cos %tanh)
-    (single-float) (single-float -1f0 1f0)
-    (sb-c:movable sb-c:flushable sb-c:foldable)
-  :overwrite-fndb-silently t)
-
-(sb-c:defknown (%log %tan %sinh)
-    (single-float) single-float
-    (sb-c:movable sb-c:flushable sb-c:foldable)
-  :overwrite-fndb-silently t)
-
-(sb-c:defknown (%powf)
-  (single-float single-float) single-float
-    (sb-c:movable sb-c:foldable sb-c:flushable)
-  :overwrite-fndb-silently t)
+;; Call VOP
+#+x86-64
+(defun %sqrtf (x)
+  (%sqrtf x))
 
 ;; Define IR1 transformations from EXP to %EXP and so on.
 ;; (look at src/compiler/float-tran.lisp in SBCL source code).

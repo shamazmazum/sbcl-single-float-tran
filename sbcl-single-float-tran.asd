@@ -8,5 +8,5 @@
   :pathname "src/"
   :components ((:file "expt-fix"        :if-feature :sbcl)
                (:file "sbcl-transforms" :if-feature :sbcl)
-               (:file "vop"             :if-feature :x86-64)
+               (:file "vop"             :if-feature (:and :sbcl :x86-64))
                (:file "no-sbcl"         :if-feature (:not :sbcl))))

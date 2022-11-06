@@ -1,6 +1,5 @@
 (in-package :sb-vm)
 
-#+x86-64
 (define-vop (fsqrtf)
   (:args (x :scs (single-reg)))
   (:results (y :scs (single-reg)))

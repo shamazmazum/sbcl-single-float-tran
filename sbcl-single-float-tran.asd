@@ -7,6 +7,8 @@
   :serial t
   :pathname "src/"
   :components ((:file "expt-fix"        :if-feature :sbcl)
-               (:file "sbcl-transforms" :if-feature :sbcl)
+               (:file "package"         :if-feature :sbcl)
+               (:file "fndb"            :if-feature :sbcl)
                (:file "vop"             :if-feature (:and :sbcl :x86-64))
+               (:file "sbcl-transforms" :if-feature :sbcl)
                (:file "no-sbcl"         :if-feature (:not :sbcl))))

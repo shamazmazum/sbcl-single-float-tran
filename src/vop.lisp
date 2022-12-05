@@ -3,7 +3,7 @@
 (define-vop (fsqrtf)
   (:args (x :scs (single-reg)))
   (:results (y :scs (single-reg)))
-  (:translate sbcl-transforms::%sqrtf)
+  (:translate sbcl-single-float-tran::%sqrtf)
   (:policy :fast-safe)
   (:arg-types single-float)
   (:result-types single-float)

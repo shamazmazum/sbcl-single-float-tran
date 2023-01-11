@@ -6,9 +6,12 @@
   :licence "2-clause BSD"
   :serial t
   :pathname "src/"
-  :components ((:file "expt-fix"        :if-feature :sbcl)
-               (:file "package"         :if-feature :sbcl)
-               (:file "fndb"            :if-feature :sbcl)
-               (:file "vop"             :if-feature (:and :sbcl :x86-64))
-               (:file "sbcl-transforms" :if-feature :sbcl)
-               (:file "no-sbcl"         :if-feature (:not :sbcl))))
+  :components ((:file "expt-fix"           :if-feature :sbcl)
+               (:file "package"            :if-feature :sbcl)
+               (:file "fndb"               :if-feature :sbcl)
+               (:file "vop"                :if-feature (:and :sbcl :x86-64))
+               (:file "transforms"         :if-feature :sbcl)
+               (:file "irrat-transforms"   :if-feature :sbcl)
+               (:file "min-max-transforms" :if-feature (:and :sbcl :x86-64))
+               (:file "no-sbcl"            :if-feature (:not :sbcl)))
+  :depends-on (:alexandria))

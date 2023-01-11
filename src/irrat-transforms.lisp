@@ -52,16 +52,15 @@
 (defun %sqrtf (x)
   (%sqrtf x))
 
-(handler-bind
-    ((sb-kernel:redefinition-with-deftransform #'muffle-warning))
-  ;; Define IR1 transformations from EXP to %EXP and so on.
-  ;; (look at src/compiler/float-tran.lisp in SBCL source code).
-  (macrolet
-      ((def-trans (name ret-type)
-         (let ((trans-name (symbolicate "%" name "f"))
-               (arg (gensym)))
-           `(sb-c:deftransform ,name ((,arg) (single-float) ,ret-type)
-              '(,trans-name ,arg)))))
+;; Define IR1 transformations from EXP to %EXP and so on.
+;; (look at src/compiler/float-tran.lisp in SBCL source code).
+(macrolet
+    ((def-trans (name ret-type)
+       (let ((trans-name (symbolicate "%" name "f"))
+             (arg (gensym)))
+         `(sb-c:deftransform ,name ((,arg) (single-float) ,ret-type)
+            '(,trans-name ,arg)))))
+  (with-silent-transform-overwrite
     (def-trans exp  *)
     (def-trans log  float)
     (def-trans sqrt float)
@@ -70,10 +69,10 @@
     (def-trans tan  *)
     (def-trans sinh *)
     (def-trans cosh *)
-    (def-trans tanh *))
+    (def-trans tanh *)))
 
+(with-silent-transform-overwrite
   (sb-c:deftransform expt ((x y) (single-float single-float) single-float)
     '(%powf x y))
-
   (sb-c:deftransform expt ((x y) (single-float integer) single-float)
     '(%powf x (coerce y 'single-float))))

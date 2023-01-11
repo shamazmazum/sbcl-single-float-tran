@@ -1,2 +1,3 @@
 (defpackage sbcl-single-float-tran
-  (:use :cl))
+  (:use :cl)
+  (:local-nicknames (:alex :alexandria)))

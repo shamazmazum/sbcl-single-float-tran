@@ -2,20 +2,21 @@
 
 This system tells SBCL how to use math functions from libm for single-float
 type. In other words rather than converting single-float to double-float,
-calling `sin` and converting back, SBCL will simply call `sinf`.
+calling `sin` and converting back, SBCL will simply call `sinf`. Also it makes
+use of some SSE instructions like `min(max)ss(d)` or `sqrtss`.
 
 Here is an example. Consider this code:
 
-~~~~{.lisp}
+``` lisp
 (defun foo (x)
   (declare (optimize (speed 3))
            (type single-float x))
   (sinh (1+ x)))
-~~~~
+```
 
 This is the produced assembly before loading `sbcl-single-float-tran`:
 
-~~~~
+``` lisp
 CL-USER> (disassemble 'foo)
 ; disassembly for FOO
 ; Size: 65 bytes. Origin: #x226390EF                          ; FOO
@@ -38,11 +39,11 @@ CL-USER> (disassemble 'foo)
 ; 12D:       C3               RET
 ; 12E:       CC10             INT3 16                         ; Invalid argument count trap
 NIL
-~~~~
+```
 
 and this is after loading `sbcl-single-float-tran` and recompilation:
 
-~~~~
+``` lisp
 CL-USER> (disassemble 'foo)
 ; disassembly for FOO
 ; Size: 46 bytes. Origin: #x2263B0BF                          ; FOO
@@ -60,18 +61,18 @@ CL-USER> (disassemble 'foo)
 ; EA:       C3               RET
 ; EB:       CC10             INT3 16                          ; Invalid argument count trap
 NIL
-~~~~
+```
 
 Note, that `sbcl-single-float-tran` correctly handles domain of a function:
 
-~~~~{.lisp}
+``` lisp
 (defun foo (x)
   (declare (optimize (speed 3))
            (type (single-float -1f0) x))
   (+ (log x) (log (1+ x))))
-~~~~
+```
 
-~~~~
+``` lisp
 CL-USER> (disassemble 'foo)
 ; disassembly for FOO
 ; Size: 109 bytes. Origin: #x2263B1A0                         ; FOO
@@ -105,6 +106,19 @@ CL-USER> (disassemble 'foo)
 ; 20A:       C3               RET
 ; 20B:       CC10             INT3 16                         ; Invalid argument count trap
 NIL
+```
+
+## MIN and MAX
+
+`sbcl-single-float-tran` converts calls to `min` and `max` with two or three
+arguments to SSE instructions where possible. Despite the name, this works for
+double float numbers too. The result of such call is converted to the largest
+format of floating point arguments if one of the arguments is a floating point
+value or otherwise remains as is. E.g.
+
+~~~~
+(MIN SINGLE-FLOAT DOUBLE-FLOAT FIXNUM) -> DOUBLE-FLOAT
+(MIN FIXNUM RATIO) -> FIXNUM or RATIO
 ~~~~
 
 ## Portability

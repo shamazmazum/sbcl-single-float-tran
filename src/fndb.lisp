@@ -21,6 +21,6 @@
   :overwrite-fndb-silently t)
 
 (sb-c:defknown (%powf)
-  (single-float single-float) single-float
+    (single-float single-float) single-float
     (sb-c:movable sb-c:foldable sb-c:flushable)
   :overwrite-fndb-silently t)

@@ -73,7 +73,7 @@
     (def-trans tanh *))
 
   (sb-c:deftransform expt ((x y) (single-float single-float) single-float)
-    `(%powf x y))
+    '(%powf x y))
 
   (sb-c:deftransform expt ((x y) (single-float integer) single-float)
-    `(%powf x (coerce y 'single-float))))
+    '(%powf x (coerce y 'single-float))))

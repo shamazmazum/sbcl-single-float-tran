@@ -26,15 +26,18 @@
   :overwrite-fndb-silently t)
 
 ;; Min and max functions which translate to SSE instructions
-
 #+x86-64
 (progn
   (sb-c:defknown (%minf %maxf)
       (single-float single-float) single-float
-      (sb-c:movable sb-c:foldable sb-c:flushable)
+      (sb-c:movable sb-c:foldable sb-c:flushable sb-c:always-translatable)
     :overwrite-fndb-silently t)
 
   (sb-c:defknown (%mind %maxd)
       (double-float double-float) double-float
+      (sb-c:movable sb-c:foldable sb-c:flushable sb-c:always-translatable)
+    :overwrite-fndb-silently t)
+
+  (sb-c:defknown (two-arg-max two-arg-min) (real real) real
       (sb-c:movable sb-c:foldable sb-c:flushable)
     :overwrite-fndb-silently t))

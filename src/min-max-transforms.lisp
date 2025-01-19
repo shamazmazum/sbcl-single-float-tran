@@ -1,13 +1,5 @@
 (in-package :sbcl-single-float-tran)
 
-;; Define stubs which translate to VOPS
-(macrolet ((def-stubs (names)
-             `(progn
-                ,@(loop for name in names collect
-                        `(defun ,name (x y)
-                           (,name x y))))))
-  (def-stubs (%minf %mind %maxf %maxd)))
-
 ;; Remove source transforms for min and max
 (setf (sb-int:info :function :source-transform 'min) nil
       (sb-int:info :function :source-transform 'max) nil)
@@ -17,10 +9,6 @@
 (sb-c:defknown (max min) (real &rest real) real
   (sb-c:movable sb-c:foldable sb-c:flushable)
   :overwrite-fndb-silently t)
-
-;; Two-arg helpers
-(sb-c:defknown (two-arg-max two-arg-min) (real real) real
-  (sb-c:movable sb-c:foldable sb-c:flushable))
 
 (macrolet ((frob (name two-arg-op)
              `(sb-c:define-source-transform ,name (arg0 &rest rest)

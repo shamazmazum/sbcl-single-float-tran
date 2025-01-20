@@ -110,16 +110,29 @@ NIL
 
 ## MIN and MAX
 
-`sbcl-single-float-tran` converts calls to `min` and `max` with two or three
-arguments to SSE instructions where possible. Despite the name, this works for
-double float numbers too. The result of such call is converted to the largest
-format of floating point arguments if one of the arguments is a floating point
-value or otherwise remains as is. E.g.
+`sbcl-single-float-tran` converts calls to `min` and `max` to SSE instructions
+where possible. Despite the name of this library, this works for double float
+numbers too. The result of such call is converted to the largest format of
+floating point arguments if one of the arguments is a floating point value or
+otherwise remains as is. E.g.
 
 ~~~~
 (MIN SINGLE-FLOAT DOUBLE-FLOAT FIXNUM) -> DOUBLE-FLOAT
 (MIN FIXNUM RATIO) -> FIXNUM or RATIO
 ~~~~
+
+### Discrepancy with normal function call
+
+This introduce a discrepancy with a normal call to MIN:
+
+~~~
+CL-USER> (funcall (lambda (x) (declare (type single-float x)) (min 1 x)) 3.0)
+1.0
+CL-USER> (min 1 3.0)
+1
+~~~
+
+According to CLHS, MIN can return either `1` or `1.0` here.
 
 ## Portability
 

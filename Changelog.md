@@ -1,5 +1,12 @@
 # Changelog
 
+## Version 0.3.1
+
+Bugfix release
+
+* Define TWO-ARG-(MIN/MAX) as normal functions too. Required for constant
+  folding.
+
 ## Version 0.3
 
 Further improvements

@@ -24,25 +24,31 @@
   (frob max two-arg-max)
   (frob min two-arg-min))
 
+(defun types-dont-intersect-p (&rest types)
+  (eq (apply #'sb-kernel:type-intersection types) sb-kernel:*empty-type*))
+
 (macrolet ((frob (name double-op single-op real-op)
-             `(sb-c:deftransform ,name ((x y) (real real) *)
-                (flet ((args-have-type-p (spec)
-                         (let ((spec-type (sb-kernel:specifier-type spec)))
-                           (or (sb-kernel:csubtypep (sb-c::lvar-type x) spec-type)
-                               (sb-kernel:csubtypep (sb-c::lvar-type y) spec-type))))
-                       (args-do-not-have-type-p (spec)
-                         (let ((spec-type (sb-kernel:specifier-type spec)))
-                           (and (eq (sb-kernel:type-intersection(sb-c::lvar-type x) spec-type)
-                                    sb-kernel:*empty-type*)
-                                (eq (sb-kernel:type-intersection(sb-c::lvar-type y) spec-type)
-                                    sb-kernel:*empty-type*)))))
-                  (cond
-                    ((args-have-type-p 'double-float)
-                     '(,double-op (sb-kernel:%double-float x) (sb-kernel:%double-float y)))
-                    ((and (args-have-type-p 'single-float)
-                          (args-do-not-have-type-p 'double-float))
-                     '(,single-op (sb-kernel:%single-float x) (sb-kernel:%single-float y)))
-                    (t
-                     '(if (,real-op x y) x y)))))))
+             `(progn
+                ;; Required for constant folding
+                (defun ,name (x y)
+                  (if (,real-op x y) x y))
+
+                (sb-c:deftransform ,name ((x y) (real real) *)
+                  (flet ((args-have-type-p (spec)
+                           (let ((spec-type (sb-kernel:specifier-type spec)))
+                             (or (sb-kernel:csubtypep (sb-c::lvar-type x) spec-type)
+                                 (sb-kernel:csubtypep (sb-c::lvar-type y) spec-type))))
+                         (args-do-not-have-type-p (spec)
+                           (let ((spec-type (sb-kernel:specifier-type spec)))
+                             (and (types-dont-intersect-p (sb-c::lvar-type x) spec-type)
+                                  (types-dont-intersect-p (sb-c::lvar-type y) spec-type)))))
+                    (cond
+                      ((args-have-type-p 'double-float)
+                       '(,double-op (sb-kernel:%double-float x) (sb-kernel:%double-float y)))
+                      ((and (args-have-type-p 'single-float)
+                            (args-do-not-have-type-p 'double-float))
+                       '(,single-op (sb-kernel:%single-float x) (sb-kernel:%single-float y)))
+                      (t
+                       '(if (,real-op x y) x y))))))))
   (frob two-arg-min %mind %minf <)
   (frob two-arg-max %maxd %maxf >))

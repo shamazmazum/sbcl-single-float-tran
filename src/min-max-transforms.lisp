@@ -31,7 +31,10 @@
              `(progn
                 ;; Required for constant folding
                 (defun ,name (x y)
-                  (if (,real-op x y) x y))
+                  ;; M is used for number contagion
+                  (let ((m (* (if (typep x 'float) (float 1 x) 1)
+                              (if (typep y 'float) (float 1 y) 1))))
+                    (* (if (,real-op x y) x y) m)))
 
                 (sb-c:deftransform ,name ((x y) (real real) *)
                   (flet ((args-have-type-p (spec)

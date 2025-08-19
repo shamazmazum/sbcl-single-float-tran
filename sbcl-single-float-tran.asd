@@ -8,6 +8,7 @@
   :pathname "src"
   :components ((:file "package"            :if-feature :sbcl)
                (:file "fndb"               :if-feature :sbcl)
+               (:file "min-max-types"      :if-feature (:and :sbcl :x86-64))
                (:file "vop"                :if-feature (:and :sbcl :x86-64))
                (:file "transforms"         :if-feature :sbcl)
                (:file "irrat-transforms"   :if-feature :sbcl)

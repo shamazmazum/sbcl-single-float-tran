@@ -1,6 +1,6 @@
 (defsystem :sbcl-single-float-tran
   :name :sbcl-single-float-tran
-  :version "0.3.1"
+  :version "0.4"
   :author "Vasily Postnicov <shamaz.mazum@gmail.com>"
   :description "SBC IR1 transformations for single-float math"
   :licence "2-clause BSD"
@@ -25,7 +25,7 @@
 
 (defsystem :sbcl-single-float-tran/tests
   :name :sbcl-single-float-tran/tests
-  :version "0.3.1"
+  :version "0.4"
   :author "Vasily Postnicov <shamaz.mazum@gmail.com>"
   :licence "2-clause BSD"
   :serial t

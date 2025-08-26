@@ -35,17 +35,21 @@
                  ,alien-name
                  (function single-float ,@(loop repeat nargs collect 'single-float)))
                 ,@args)))))))
-  (def-alien "exp"  1)
-  (def-alien "log"  1)
-  (def-alien "sin"  1)
-  (def-alien "cos"  1)
-  (def-alien "tan"  1)
-  (def-alien "sinh" 1)
-  (def-alien "cosh" 1)
+  (def-alien "exp"   1)
+  (def-alien "log"   1)
+  (def-alien "sin"   1)
+  (def-alien "cos"   1)
+  (def-alien "tan"   1)
+  (def-alien "sinh"  1)
+  (def-alien "cosh"  1)
+  (def-alien "acos"  1)
+  (def-alien "asin"  1)
+  (def-alien "atan"  1)
+  (def-alien "atan2" 2)
   #-x86-64
-  (def-alien "sqrt" 1)
-  (def-alien "tanh" 1)
-  (def-alien "pow"  2))
+  (def-alien "sqrt"  1)
+  (def-alien "tanh"  1)
+  (def-alien "pow"   2))
 
 ;; Call VOP
 #+x86-64
@@ -67,11 +71,16 @@
     (def-trans sin  *)
     (def-trans cos  *)
     (def-trans tan  *)
+    (def-trans acos float)
+    (def-trans asin float)
+    (def-trans atan *)
     (def-trans sinh *)
     (def-trans cosh *)
     (def-trans tanh *)))
 
 (with-silent-transform-overwrite
+  (sb-c:deftransform atan ((x y) (single-float single-float) *)
+    '(%atan2f x y))
   (sb-c:deftransform expt ((x y) (single-float single-float) single-float)
     '(%powf x y))
   (sb-c:deftransform expt ((x y) (single-float integer) single-float)

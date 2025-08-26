@@ -15,6 +15,30 @@
     (sb-c:movable sb-c:flushable sb-c:foldable)
   :overwrite-fndb-silently t)
 
+(sb-c:defknown (%asinf)
+    ((single-float -1f0 1f0)) (single-float #.(float (- (/ pi 2)) 0.0)
+                                            #.(float (+ (/ pi 2)) 0.0))
+    (sb-c:movable sb-c:flushable sb-c:foldable)
+  :overwrite-fndb-silently t)
+
+(sb-c:defknown (%acosf)
+    ((single-float -1f0 1f0)) (single-float 0.0 #.(float pi 0.0))
+    (sb-c:movable sb-c:flushable sb-c:foldable)
+  :overwrite-fndb-silently t)
+
+(sb-c:defknown (%atanf)
+    (single-float) (single-float #.(float (- (/ pi 2)) 0.0)
+                                 #.(float (+ (/ pi 2)) 0.0))
+    (sb-c:movable sb-c:flushable sb-c:foldable)
+  :overwrite-fndb-silently t)
+
+(sb-c:defknown (%atan2f)
+    (single-float single-float)
+    (single-float #.(float (- pi) 0.0)
+                  #.(float (+ pi) 0.0))
+    (sb-c:movable sb-c:flushable sb-c:foldable)
+  :overwrite-fndb-silently t)
+
 (sb-c:defknown (%logf %tanf %sinhf)
     (single-float) single-float
     (sb-c:movable sb-c:flushable sb-c:foldable)

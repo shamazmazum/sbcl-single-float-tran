@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 0.5
+
+* Add transforms for `asin`, `acos` and `atan`.
+* Better type inference in some cases.
+
 ## Version 0.4
 
 * Improvement: Result type inference for MIN and MAX. For example, now a call to

@@ -27,14 +27,16 @@
          `(progn
             (declaim (inline ,func-name))
             (defun ,func-name ,args
-              (sb-ext:truly-the
-               ,(sb-kernel:type-specifier
-                 (sb-kernel:fun-type-returns (sb-impl::info :function :type func-name)))
-               (sb-alien:alien-funcall
-                (sb-alien:extern-alien
-                 ,alien-name
-                 (function single-float ,@(loop repeat nargs collect 'single-float)))
-                ,@args)))))))
+              (locally
+                  (declare (sb-c:flushable sb-c:%alien-funcall))
+                (sb-ext:truly-the
+                    ,(sb-kernel:type-specifier
+                      (sb-kernel:fun-type-returns (sb-impl::info :function :type func-name)))
+                  (sb-alien:alien-funcall
+                   (sb-alien:extern-alien
+                    ,alien-name
+                    (function single-float ,@(loop repeat nargs collect 'single-float)))
+                   ,@args))))))))
   (def-alien "exp"   1)
   (def-alien "log"   1)
   (def-alien "sin"   1)

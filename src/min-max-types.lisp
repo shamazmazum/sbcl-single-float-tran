@@ -16,39 +16,77 @@
 (defun high-max (x y)
   (and x y (if (> x y) x y)))
 
-(defun min-max-result-type (low high x y)
+(defun delistify (x)
+  (if (atom x) x (first x)))
+
+(defun prefer-closed-endpoint (sx sy s)
+  (when s
+    (let ((%sx (delistify sx))
+          (%sy (delistify sy)))
+      (if (or (and (= %sx %sy s)
+                   (or (atom sx)
+                       (atom sy)))
+              (and (= s %sx)
+                   (atom sx))
+              (and (= s %sy)
+                   (atom sy)))
+          s (list s)))))
+
+(defun prefer-open-endpoint (sx sy s)
+  (when s
+    (let ((%sx (delistify sx))
+          (%sy (delistify sy)))
+      (if (or (and (= %sx %sy s)
+                   (or (listp sx)
+                       (listp sy)))
+              (and (= s %sx)
+                   (listp sx))
+              (and (= s %sy)
+                   (listp sy)))
+          (list s) s))))
+
+(defun min-max-result-type (low-ep-value high-ep-value
+                            low-ep-type high-ep-type x y)
   (assert (eq (sb-kernel::numeric-type-format x)
               (sb-kernel::numeric-type-format y)))
-  (let ((low-x  (sb-kernel:numeric-union-type-low  x))
-        (low-y  (sb-kernel:numeric-union-type-low  y))
-        (high-x (sb-kernel:numeric-union-type-high x))
-        (high-y (sb-kernel:numeric-union-type-high y)))
+  (let* ((low-x  (sb-kernel:numeric-union-type-low  x))
+         (low-y  (sb-kernel:numeric-union-type-low  y))
+         (high-x (sb-kernel:numeric-union-type-high x))
+         (high-y (sb-kernel:numeric-union-type-high y))
+         (%low   (funcall low-ep-value  (delistify low-x)  (delistify low-y)))
+         (%high  (funcall high-ep-value (delistify high-x) (delistify high-y)))
+         (low    (funcall low-ep-type  low-x  low-y  %low))
+         (high   (funcall high-ep-type high-x high-y %high)))
     (sb-kernel:make-numeric-type
      :class  'float
      :format (sb-kernel::numeric-type-format x)
-     :low    (funcall low  low-x  low-y)
-     :high   (funcall high high-x high-y))))
+     :low    low
+     :high   high)))
 
 (sb-c:defoptimizer (%maxd sb-c:derive-type) ((x y))
   (min-max-result-type
    #'low-max #'high-max
+   #'prefer-open-endpoint #'prefer-closed-endpoint
    (sb-c::lvar-type x)
    (sb-c::lvar-type y)))
 
 (sb-c:defoptimizer (%maxf sb-c:derive-type) ((x y))
   (min-max-result-type
    #'low-max #'high-max
+   #'prefer-open-endpoint #'prefer-closed-endpoint
    (sb-c::lvar-type x)
    (sb-c::lvar-type y)))
 
 (sb-c:defoptimizer (%mind sb-c:derive-type) ((x y))
   (min-max-result-type
    #'low-min #'high-min
+   #'prefer-closed-endpoing #'prefer-open-endpoint
    (sb-c::lvar-type x)
    (sb-c::lvar-type y)))
 
 (sb-c:defoptimizer (%minf sb-c:derive-type) ((x y))
   (min-max-result-type
    #'low-min #'high-min
+   #'prefer-closed-endpoint #'prefer-open-endpoint
    (sb-c::lvar-type x)
    (sb-c::lvar-type y)))

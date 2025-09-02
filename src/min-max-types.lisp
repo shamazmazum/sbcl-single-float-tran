@@ -23,12 +23,13 @@
   (when s
     (let ((%sx (delistify sx))
           (%sy (delistify sy)))
-      (if (or (and (= %sx %sy s)
+      (if (or (and sx sy
+                   (= %sx %sy s)
                    (or (atom sx)
                        (atom sy)))
-              (and (= s %sx)
+              (and sx (= s %sx)
                    (atom sx))
-              (and (= s %sy)
+              (and sy (= s %sy)
                    (atom sy)))
           s (list s)))))
 
@@ -36,12 +37,13 @@
   (when s
     (let ((%sx (delistify sx))
           (%sy (delistify sy)))
-      (if (or (and (= %sx %sy s)
+      (if (or (and sx sy
+                   (= %sx %sy s)
                    (or (listp sx)
                        (listp sy)))
-              (and (= s %sx)
+              (and sx (= s %sx)
                    (listp sx))
-              (and (= s %sy)
+              (and sy (= s %sy)
                    (listp sy)))
           (list s) s))))
 
@@ -80,7 +82,7 @@
 (sb-c:defoptimizer (%mind sb-c:derive-type) ((x y))
   (min-max-result-type
    #'low-min #'high-min
-   #'prefer-closed-endpoing #'prefer-open-endpoint
+   #'prefer-closed-endpoint #'prefer-open-endpoint
    (sb-c::lvar-type x)
    (sb-c::lvar-type y)))
 

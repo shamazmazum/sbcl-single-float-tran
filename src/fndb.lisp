@@ -49,6 +49,11 @@
     (sb-c:movable sb-c:foldable sb-c:flushable)
   :overwrite-fndb-silently t)
 
+(sb-c:defknown (%hypotf)
+    (single-float single-float) (single-float 0f0)
+    (sb-c:movable sb-c:foldable sb-c:flushable)
+  :overwrite-fndb-silently t)
+
 ;; Min and max functions which translate to SSE instructions
 #+x86-64
 (progn

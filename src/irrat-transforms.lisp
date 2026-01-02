@@ -51,7 +51,8 @@
   #-x86-64
   (def-alien "sqrt"  1)
   (def-alien "tanh"  1)
-  (def-alien "pow"   2))
+  (def-alien "pow"   2)
+  (def-alien "hypot" 2))
 
 ;; Call VOP
 #+x86-64
@@ -84,6 +85,8 @@
 (with-silent-transform-overwrite
   (sb-c:deftransform atan ((x y) (single-float single-float) *)
     '(%atan2f x y))
+  (sb-c:deftransform abs ((x) ((complex single-float)) single-float)
+    '(%hypotf (realpart x) (imagpart x)))
   (sb-c:deftransform expt ((x y) (single-float single-float) single-float)
     '(%powf x y))
   (sb-c:deftransform expt ((x y) (single-float integer) single-float)

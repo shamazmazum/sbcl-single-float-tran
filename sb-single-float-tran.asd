@@ -3,7 +3,7 @@
 (defsystem :sb-single-float-tran
   :name "SB-SINGLE-FLOAT-TRAN"
   :author "Vasily Postnicov <shamaz.mazum@gmail.com>"
-  :version "0.5"
+  :version "0.6"
   :description "SBCL IR1 transformations for single-float math (and more)"
   :licence "2-clause BSD"
   :serial t

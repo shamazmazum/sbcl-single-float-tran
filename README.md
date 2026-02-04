@@ -3,7 +3,7 @@
 This system tells SBCL how to use math functions from libm for single-float
 type. In other words rather than converting single-float to double-float,
 calling `sin` and converting back, SBCL will simply call `sinf`. Also it makes
-use of some SSE instructions like `min(max)ss(d)` or `sqrtss`.
+use of some SSE instructions like `min(max)ss(d)`.
 
 Here is an example. Consider this code:
 
@@ -138,6 +138,17 @@ According to CLHS, MIN can return either `1` or `1.0` here.
 
 This system can be loaded on any other implementation but obviously has an
 effect on SBCL only.
+
+## Installation
+
+This system can be loaded via Ultralisp:
+
+``` lisp
+(ql:quickload :sbcl-single-float-tran)
+```
+
+or it can be compiled into a `fasl` file via `gmake` (or just `make` on Linux
+systems). Then this file can be loaded from `.sbclrc`.
 
 ## TODO
 

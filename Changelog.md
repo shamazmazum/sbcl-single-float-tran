@@ -1,5 +1,11 @@
 # Changelog
 
+## Version 0.6
+
+* Remove a transform for `sqrt` with a single float argument: SBCL can do this
+  out of the box for some time.
+* This system can now be compiled to a `.fasl` file with GNU make.
+
 ## Version 0.5
 
 * Add transforms for `asin`, `acos` and `atan`.

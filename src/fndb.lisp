@@ -5,7 +5,7 @@
 
 ;; Additional hack is needed for these functions to be really flushable:
 ;; https://sourceforge.net/p/sbcl/mailman/message/37134684/
-(sb-c:defknown (%expf %sqrtf %coshf)
+(sb-c:defknown (%expf %coshf)
     (single-float) (single-float 0f0)
     (sb-c:movable sb-c:flushable sb-c:foldable)
   :overwrite-fndb-silently t)

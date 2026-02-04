@@ -48,16 +48,9 @@
   (def-alien "asin"  1)
   (def-alien "atan"  1)
   (def-alien "atan2" 2)
-  #-x86-64
-  (def-alien "sqrt"  1)
   (def-alien "tanh"  1)
   (def-alien "pow"   2)
   (def-alien "hypot" 2))
-
-;; Call VOP
-#+x86-64
-(defun %sqrtf (x)
-  (%sqrtf x))
 
 ;; Define IR1 transformations from EXP to %EXP and so on.
 ;; (look at src/compiler/float-tran.lisp in SBCL source code).
@@ -71,7 +64,6 @@
   (with-silent-transform-overwrite
     (def-trans exp  *)
     (def-trans log  float)
-    (def-trans sqrt float)
     (def-trans sin  *)
     (def-trans cos  *)
     (def-trans tan  *)

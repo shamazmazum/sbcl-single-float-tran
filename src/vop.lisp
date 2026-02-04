@@ -1,22 +1,5 @@
 (in-package :sb-vm)
 
-(define-vop (fsqrtf)
-  (:args (x :scs (single-reg)))
-  (:results (y :scs (single-reg)))
-  (:translate sbcl-single-float-tran::%sqrtf)
-  (:policy :fast-safe)
-  (:arg-types single-float)
-  (:result-types single-float)
-  (:note "inline float arithmetic")
-  (:vop-var vop)
-  (:save-p :compute-only)
-  (:generator
-   1
-   (unless (location= x y)
-     (inst xorps y y))
-   (note-float-location 'sqrt vop x)
-   (inst sqrtss y x)))
-
 (macrolet ((frob (op-name vop-name op-inst double-p)
              (let ((sc-name   (if double-p 'double-reg 'single-reg))
                    (move-inst (if double-p 'movsd 'movss))

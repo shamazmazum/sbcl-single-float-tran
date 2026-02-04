@@ -89,20 +89,6 @@
             3.0))))
 
 
-(serapeum:-> sqrt-single ((single-float 0.0)) (values single-float &optional))
-(defun sqrt-single (x)
-  (sqrt x))
-
-(serapeum:-> sqrt-real ((real 0)) (values real &optional))
-(defun sqrt-real (x)
-  (sqrt x))
-
-(test sqrt
-  (loop repeat 500000
-        for x = (random 10000000.0) do
-        (is (eq (sqrt-real x) (sqrt-single x)))))
-
-
 (in-suite imprecise)
 (defconstant +limit+ 10000000.0)
 

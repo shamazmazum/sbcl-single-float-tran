@@ -14,7 +14,6 @@
                (:file "irrat-transforms"   :if-feature :sbcl)
                (:file "min-max-transforms" :if-feature (:and :sbcl :x86-64))
                (:file "no-sbcl"            :if-feature (:not :sbcl)))
-  :depends-on (:alexandria)
   :in-order-to ((test-op (load-op "sbcl-single-float-tran/tests")))
   :perform (test-op (op system)
                     (declare (ignore op system))

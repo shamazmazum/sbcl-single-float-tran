@@ -2,7 +2,7 @@
   :name :sbcl-single-float-tran
   :version "0.5"
   :author "Vasily Postnicov <shamaz.mazum@gmail.com>"
-  :description "SBC IR1 transformations for single-float math"
+  :description "SBCL IR1 transformations for single-float math (and more)"
   :licence "2-clause BSD"
   :serial t
   :pathname "src"

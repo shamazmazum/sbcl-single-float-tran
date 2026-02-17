@@ -1,23 +1,10 @@
 (in-package :sbcl-single-float-tran)
 
-(defun low-min (x y)
-  (and x y (if (< x y) x y)))
-
-(defun high-min (x y)
-  (if (and x y)
-      (if (< x y) x y)
-      (or x y)))
-
-(defun low-max (x y)
-  (if (and x y)
-      (if (> x y) x y)
-      (or x y)))
-
-(defun high-max (x y)
-  (and x y (if (> x y) x y)))
-
 (defun delistify (x)
   (if (atom x) x (first x)))
+
+(defun interval-op (f x y)
+  (funcall f (delistify x) (delistify y)))
 
 (defun prefer-closed-endpoint (sx sy s)
   (when s
@@ -47,50 +34,73 @@
                    (listp sy)))
           (list s) s))))
 
-(defun min-max-result-type (low-ep-value high-ep-value
-                            low-ep-type high-ep-type x y)
-  (assert (eq (sb-kernel::numeric-type-format x)
-              (sb-kernel::numeric-type-format y)))
-  (let* ((x-interval (sb-c::type-approximate-interval x))
-         (y-interval (sb-c::type-approximate-interval y))
-         (low-x  (sb-c::interval-low  x-interval))
-         (low-y  (sb-c::interval-low  y-interval))
-         (high-x (sb-c::interval-high x-interval))
-         (high-y (sb-c::interval-high y-interval))
-         (%low   (funcall low-ep-value  (delistify low-x)  (delistify low-y)))
-         (%high  (funcall high-ep-value (delistify high-x) (delistify high-y)))
-         (low    (funcall low-ep-type  low-x  low-y  %low))
-         (high   (funcall high-ep-type high-x high-y %high)))
-    (sb-kernel:make-numeric-type
-     :class  'float
-     :format (sb-kernel::numeric-type-format x)
-     :low    low
-     :high   high)))
+(defun interval-min (x y)
+  (let* ((xlow  (sb-c::interval-low x))
+         (xhigh (sb-c::interval-high x))
+         (ylow  (sb-c::interval-low y))
+         (yhigh (sb-c::interval-high y))
+         (low (and xlow ylow
+                   (interval-op
+                    (lambda (x y)
+                      (if (< x y) x y))
+                    xlow ylow)))
+         (high (if (and xhigh yhigh)
+                   (interval-op
+                    (lambda (x y)
+                      (if (< x y) x y))
+                    xhigh yhigh)
+                   (delistify
+                    (or xhigh yhigh)))))
+    (sb-c::make-interval :low  (prefer-closed-endpoint xlow  ylow  low)
+                         :high (prefer-open-endpoint   xhigh yhigh high))))
 
-(sb-c:defoptimizer (%maxd sb-c:derive-type) ((x y))
-  (min-max-result-type
-   #'low-max #'high-max
-   #'prefer-open-endpoint #'prefer-closed-endpoint
-   (sb-c::lvar-type x)
-   (sb-c::lvar-type y)))
+(defun interval-max (x y)
+  (let* ((xlow  (sb-c::interval-low x))
+         (xhigh (sb-c::interval-high x))
+         (ylow  (sb-c::interval-low y))
+         (yhigh (sb-c::interval-high y))
+         (low (if (and xlow ylow)
+                  (interval-op
+                   (lambda (x y)
+                     (if (> x y) x y))
+                   xlow ylow)
+                  (delistify
+                   (or xlow ylow))))
+         (high (and xhigh yhigh
+                    (interval-op
+                     (lambda (x y)
+                       (if (> x y) x y))
+                     xhigh yhigh))))
+    (sb-c::make-interval :low  (prefer-open-endpoint   xlow  ylow  low)
+                         :high (prefer-closed-endpoint xhigh yhigh high))))
 
-(sb-c:defoptimizer (%maxf sb-c:derive-type) ((x y))
-  (min-max-result-type
-   #'low-max #'high-max
-   #'prefer-open-endpoint #'prefer-closed-endpoint
-   (sb-c::lvar-type x)
-   (sb-c::lvar-type y)))
+(macrolet ((def-type-deriver (name interval-fn)
+             `(defun ,name (x y samep)
+                (if samep x
+                    (let* ((x-interval (sb-c::numeric-type->interval x))
+                           (y-interval (sb-c::numeric-type->interval y))
+                           (result (,interval-fn x-interval y-interval))
+                           (result-type (sb-c::numeric-contagion x y)))
+                      ;; If the result type is a float, we need to be sure to coerce
+                      ;; the bounds into the correct type.
+                      (when (eq (sb-kernel:numeric-type-class result-type) 'float)
+                        (setf result (sb-c::interval-func
+                                      #'(lambda (x)
+                                          (sb-c::coerce-for-bound
+                                           x (or (sb-kernel:numeric-type-format result-type)
+                                                 'float)))
+                                      result)))
+                      (sb-kernel:make-numeric-type
+                       :class  (sb-kernel:numeric-type-class  result-type)
+                       :format (sb-kernel:numeric-type-format result-type)
+                       :low    (sb-c::interval-low  result)
+                       :high   (sb-c::interval-high result)))))))
+  (def-type-deriver min-derive-type-aux interval-min)
+  (def-type-deriver max-derive-type-aux interval-max))
 
-(sb-c:defoptimizer (%mind sb-c:derive-type) ((x y))
-  (min-max-result-type
-   #'low-min #'high-min
-   #'prefer-closed-endpoint #'prefer-open-endpoint
-   (sb-c::lvar-type x)
-   (sb-c::lvar-type y)))
 
-(sb-c:defoptimizer (%minf sb-c:derive-type) ((x y))
-  (min-max-result-type
-   #'low-min #'high-min
-   #'prefer-closed-endpoint #'prefer-open-endpoint
-   (sb-c::lvar-type x)
-   (sb-c::lvar-type y)))
+(sb-c:defoptimizer (two-arg-min sb-c:derive-type) ((x y))
+  (sb-c::two-arg-derive-type x y #'min-derive-type-aux))
+
+(sb-c:defoptimizer (two-arg-max sb-c:derive-type) ((x y))
+  (sb-c::two-arg-derive-type x y #'max-derive-type-aux))

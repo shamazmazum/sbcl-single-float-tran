@@ -36,7 +36,7 @@
                               (if (typep y 'float) (float 1 y) 1))))
                     (* (if (,real-op x y) x y) m)))
 
-                (sb-c:deftransform ,name ((x y) (real real) *)
+                (sb-c:deftransform ,name ((x y) (real real) * :node node)
                   (flet ((args-have-type-p (spec)
                            (let ((spec-type (sb-kernel:specifier-type spec)))
                              (or (sb-kernel:csubtypep (sb-c::lvar-type x) spec-type)
@@ -45,6 +45,7 @@
                            (let ((spec-type (sb-kernel:specifier-type spec)))
                              (and (types-dont-intersect-p (sb-c::lvar-type x) spec-type)
                                   (types-dont-intersect-p (sb-c::lvar-type y) spec-type)))))
+                    (sb-c::delay-ir1-transform node :ir1-phases)
                     (cond
                       ((args-have-type-p 'double-float)
                        '(,double-op (sb-kernel:%double-float x) (sb-kernel:%double-float y)))

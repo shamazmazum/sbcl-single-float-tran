@@ -104,3 +104,11 @@
 
 (sb-c:defoptimizer (two-arg-max sb-c:derive-type) ((x y))
   (sb-c::two-arg-derive-type x y #'max-derive-type-aux))
+
+(sb-c:defoptimizer (two-arg-min sb-c::constraint-propagate-result) ((x y))
+  (list (list '<= x)
+        (list '<= y)))
+
+(sb-c:defoptimizer (two-arg-max sb-c::constraint-propagate-result) ((x y))
+  (list (list '>= x)
+        (list '>= y)))

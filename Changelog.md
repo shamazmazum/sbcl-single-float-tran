@@ -1,5 +1,24 @@
 # Changelog
 
+## Version 1.0
+
+* Add result constrains for MIN/MAX so that SBCL can detect unreachable code in
+  the following:
+
+  ```lisp
+  (defun foo (x y)
+  (unless (<= (min x y) x)
+    (error "never happens")))
+  ```
+
+  and
+
+  ```lisp
+  (defun bar (x y)
+  (unless (<= x (max x y))
+    (error "never happens")))
+  ```
+
 ## Version 0.6
 
 * Remove a transform for `sqrt` with a single float argument: SBCL can do this

@@ -91,7 +91,10 @@
                                                  'float)))
                                       result)))
                       (sb-kernel:make-numeric-type
-                       :class  (sb-kernel:numeric-type-class  result-type)
+                       :class  (if (and (eq (sb-kernel:numeric-type-class x) 'integer)
+                                        (eq (sb-kernel:numeric-type-class y) 'integer))
+                                   'integer
+                                   (sb-kernel:numeric-type-class result-type))
                        :format (sb-kernel:numeric-type-format result-type)
                        :low    (sb-c::interval-low  result)
                        :high   (sb-c::interval-high result)))))))

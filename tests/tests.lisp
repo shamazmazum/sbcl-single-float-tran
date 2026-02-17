@@ -7,13 +7,15 @@
                      (explain! status)
                      (results-status status)))
                  (ecase which
-                   (:all          '(precise imprecise))
-                   (:precise-only '(precise))))))
+                   (:all          '(type-derivation precise imprecise))
+                   (:precise-only '(type-derivation precise))))))
 
 (def-suite precise
     :description "Test transforms which give precisely the same result as before")
 (def-suite imprecise
     :description "Test transforms which give almost the same result as before")
+(def-suite type-derivation
+    :description "Check type derivers for some functions")
 
 (in-suite precise)
 (defmacro %define-min/max (name op (&rest arg-types) res-type)
@@ -119,3 +121,63 @@
   :random-form (1+ (random +limit+)))
 (def-imprecise-test sin 1f-6)
 (def-imprecise-test cos 1f-6)
+
+(in-suite type-derivation)
+
+(defun min-deriver (x y)
+  (sbcl-single-float-tran::min-derive-type-aux x y nil))
+
+(defun max-deriver (x y)
+  (sbcl-single-float-tran::max-derive-type-aux x y nil))
+
+(test min-derive-type
+  (is (min-deriver
+       (sb-kernel:specifier-type '(single-float * *))
+       (sb-kernel:specifier-type '(single-float -1.0 2.0)))
+      (sb-kernel:specifier-type '(single-float * *)))
+  (is (min-deriver
+       (sb-kernel:specifier-type '(single-float -10.0 *))
+       (sb-kernel:specifier-type '(single-float * 2.0)))
+      (sb-kernel:specifier-type '(single-float * 2.0)))
+  (is (min-deriver
+       (sb-kernel:specifier-type '(single-float -10.0 1.0))
+       (sb-kernel:specifier-type '(single-float -20.0 2.0)))
+      (sb-kernel:specifier-type '(single-float -20.0 1.0)))
+  (is (min-deriver
+       (sb-kernel:specifier-type '(single-float -10.0 1.0))
+       (sb-kernel:specifier-type '(double-float -20d0 2d0)))
+      (sb-kernel:specifier-type '(double-float -20d0 1d0)))
+  (is (min-deriver
+       (sb-kernel:specifier-type '(double-float -10d0 2d0))
+       (sb-kernel:specifier-type '(single-float (-10.0) (2.0))))
+      (sb-kernel:specifier-type '(double-float -10d0 (2d0))))
+  (is (min-deriver
+       (sb-kernel:specifier-type '(integer (-10) 2))
+       (sb-kernel:specifier-type '(single-float -8.0 4.0)))
+      (sb-kernel:specifier-type '(single-float -9.0 2.0))))
+
+(test max-derive-type
+  (is (max-deriver
+       (sb-kernel:specifier-type '(single-float * *))
+       (sb-kernel:specifier-type '(single-float -1.0 2.0)))
+      (sb-kernel:specifier-type '(single-float * *)))
+  (is (max-deriver
+       (sb-kernel:specifier-type '(single-float -10.0 *))
+       (sb-kernel:specifier-type '(single-float * 2.0)))
+      (sb-kernel:specifier-type '(single-float -10.0 *)))
+  (is (max-deriver
+       (sb-kernel:specifier-type '(single-float -10.0 1.0))
+       (sb-kernel:specifier-type '(single-float -20.0 2.0)))
+      (sb-kernel:specifier-type '(single-float -10.0 2.0)))
+  (is (max-deriver
+       (sb-kernel:specifier-type '(single-float -10.0 1.0))
+       (sb-kernel:specifier-type '(double-float -20d0 2d0)))
+      (sb-kernel:specifier-type '(double-float -10d0 2d0)))
+  (is (max-deriver
+       (sb-kernel:specifier-type '(double-float -10d0 2d0))
+       (sb-kernel:specifier-type '(single-float (-10.0) (2.0))))
+      (sb-kernel:specifier-type '(double-float (-10d0) 2d0)))
+  (is (max-deriver
+       (sb-kernel:specifier-type '(integer -10 (6)))
+       (sb-kernel:specifier-type '(single-float -8.0 4.0)))
+      (sb-kernel:specifier-type '(single-float -8.0 5.0))))

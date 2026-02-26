@@ -53,6 +53,6 @@
                             (args-do-not-have-type-p 'double-float))
                        '(,single-op (sb-kernel:%single-float x) (sb-kernel:%single-float y)))
                       (t
-                       '(if (,real-op x y) x y))))))))
+                       (sb-c::give-up-ir1-transform))))))))
   (frob two-arg-min %mind %minf <)
   (frob two-arg-max %maxd %maxf >))

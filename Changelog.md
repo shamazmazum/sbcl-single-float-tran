@@ -1,5 +1,11 @@
 # Changelog
 
+## Version 1.0.1
+
+* Incompatible change: This version is for SBCL 2.6.5+. Older versions are not
+  supported.
+* Bug fix: Apply transforms more carefully to MIN/MAX
+
 ## Version 1.0
 
 * Add result constrains for MIN/MAX so that SBCL can detect unreachable code in

@@ -1,5 +1,10 @@
 (in-package :sbcl-single-float-tran)
 
+;; sb-kernel:make-numeric-union-type was called
+;; sb-kernel:make-numeric-type, which is now a separate helper
+;; function.
+(sb-ext:assert-version->= 2 6 5)
+
 (defun delistify (x)
   (if (atom x) x (first x)))
 
@@ -90,7 +95,7 @@
                                            x (or (sb-kernel:numeric-type-format result-type)
                                                  'float)))
                                       result)))
-                      (sb-kernel:make-numeric-type
+                      (sb-kernel:make-numeric-union-type
                        :class  (if (and (eq (sb-kernel:numeric-type-class x) 'integer)
                                         (eq (sb-kernel:numeric-type-class y) 'integer))
                                    'integer

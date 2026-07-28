@@ -19,7 +19,7 @@
                                    arg0
                                    (sb-impl::once-only ((arg0 arg0)
                                                         (acc (apply #'expand rest)))
-                                     `(,',two-arg-op ,acc ,arg0)))))
+                                     `(,',two-arg-op ,arg0 ,acc)))))
                       (apply #'expand arg0 rest))))))
   (frob max two-arg-max)
   (frob min two-arg-min))

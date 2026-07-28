@@ -1,5 +1,11 @@
 # Changelog
 
+## Version 1.0.2
+
+* Incompatible change: This version is for SBCL 2.6.7+. Older versions are not
+  supported.
+* Bug fix: Correct behaviour of MIN/MAX with NaNs.
+
 ## Version 1.0.1
 
 * Incompatible change: This version is for SBCL 2.6.5+. Older versions are not
